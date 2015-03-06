@@ -1,0 +1,14 @@
+# DONE #
+
+[2015-02-26] [nsiow] started writing program, laying down basic parallel pipeline
+[2015-02-27] [nsiow] finished qreader.go and started making Filter classes
+[2015-02-27] [nsiow] started work on the cmd-line interface
+[2015-03-01] [nsiow] fleshed out NewFilter function and creation of filters is working well
+[2015-03-01] [nsiow] normal string-based searches are working!
+[2015-03-04] [nsiow] created the BaseFilter interface that allows for normal/regex filters to be treated agnostically
+[2015-03-06] [nsiow] allowed specified fields to be printed, got REGEX filters working
+
+# TODO #
+
+- allow command-line interface to parse flags after other arguments
+- allow size of channel / number of workers to be flexible based on the runtime performance of the program
