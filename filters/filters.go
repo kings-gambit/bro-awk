@@ -63,7 +63,7 @@ type Filter struct {
 */
 type RegexFilter struct {
 	fields           []string
-	values           []string
+	values           []*regexp.Regexp
 	compare_function func(a string, re *regexp.Regexp) bool
 }
 
@@ -71,53 +71,97 @@ type RegexFilter struct {
 	Constructor for single filter type
 	TODO check with regex or something to make sure it's a valid rule!
 */
-func NewFilter(rule string) *Filter {
-	if strings.Contains(rule, "*") {
-		// TODO
-		fmt.Println("Regex-based filters not yet implemented, sorry!")
-		os.Exit(1)
-	}
-
-	f := Filter{}
-
+func NewFilter(rule string) BaseFilter {
 	// set the appropriate comparison function based on which
 	// operator is given
-	var opsides []string
-	var negate bool = false
+	var op string
+	var isregex, negate bool
 
 	if strings.Contains(rule, "!=") {
-		opsides = strings.Split(rule, "!=")
+		op = "!="
 		negate = true
+		isregex = false
 	} else if strings.Contains(rule, "=") {
-		opsides = strings.Split(rule, "=")
+		op = "="
 		negate = false
+		isregex = false
+	} else if strings.Contains(rule, "!~") {
+		op = "!~"
+		negate = true
+		isregex = true
+	} else if strings.Contains(rule, "~") {
+		op = "~"
+		negate = false
+		isregex = true
 	} else {
 		fmt.Println("[ERROR] not sure how to parse rule: " + rule)
 		os.Exit(1)
 	}
 
-	// choose the comparison operator based on whether or not to negate
-	// the filter
-	if negate {
-		f.compare_function = func(a string, b string) bool {
-			return (a != b)
-		}
-	} else {
-		f.compare_function = func(a string, b string) bool {
-			return (a == b)
-		}
-	}
-
 	// split the rule into fields/values and set the appropriate fields
 	// in the new filter
+	opsides := strings.Split(rule, op)
+	if len(opsides) != 2 {
+		fmt.Println("[ERROR] rule contains too many boolean operators: " + rule)
+		os.Exit(1)
+	}
 
 	fields := strings.Split(opsides[0], ",")
 	values := strings.Split(opsides[1], ",")
 
-	f.fields = fields
-	f.values = values
+	// choose the comparison operator based on whether or not to negate
+	// the filter
+	if isregex {
+		f := &RegexFilter{}
 
-	return &f
+		// compile the user-supplied regexes
+		regex_values := make([]*regexp.Regexp, len(values))
+		for i, v := range values {
+			my_regex, err := regexp.Compile(v)
+			if err != nil {
+				fmt.Println("[ERROR] unable to compile POSIX regex: " + v)
+				os.Exit(1)
+			} else {
+				regex_values[i] = my_regex
+			}
+		}
+
+		// set the fields and values of the filter
+		f.fields = fields
+		f.values = regex_values
+
+		// set the compare function based on whether or not negation should be used
+		if negate {
+			f.compare_function = func(a string, re *regexp.Regexp) bool {
+				return !re.MatchString(a)
+			}
+		} else {
+			f.compare_function = func(a string, re *regexp.Regexp) bool {
+				return re.MatchString(a)
+			}
+		}
+
+		return BaseFilter(f)
+	} else {
+		f := &Filter{}
+
+		// set the fields and values of the filter
+		f.fields = fields
+		f.values = values
+
+		// set the compare function based on whether or not negation should be used
+		if negate {
+			f.compare_function = func(a string, b string) bool {
+				return (a != b)
+			}
+		} else {
+			f.compare_function = func(a string, b string) bool {
+				return (a == b)
+			}
+		}
+
+		return BaseFilter(f)
+	}
 }
 
 /*
@@ -125,6 +169,22 @@ func NewFilter(rule string) *Filter {
 	TODO
 */
 func (self Filter) Passes(data *Linedata) bool {
+	for _, field := range self.fields {
+		for _, value := range self.values {
+			if !self.compare_function(data.get(field), value) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+/*
+	Determines whether or not that line passes based off the given filter
+	TODO
+*/
+func (self RegexFilter) Passes(data *Linedata) bool {
 	for _, field := range self.fields {
 		for _, value := range self.values {
 			if !self.compare_function(data.get(field), value) {
@@ -146,7 +206,7 @@ func (self Filter) Passes(data *Linedata) bool {
 	The line must match all contained filters in order for it to 'pass'
 */
 type FilterSet struct {
-	filters []*Filter
+	filters []BaseFilter
 }
 
 /*
@@ -155,7 +215,7 @@ type FilterSet struct {
 */
 func NewFilterSet(params []string) *FilterSet {
 	fs := FilterSet{}
-	fs.filters = make([]*Filter, len(params))
+	fs.filters = make([]BaseFilter, len(params))
 
 	for i, param_string := range params {
 		fs.filters[i] = NewFilter(param_string)

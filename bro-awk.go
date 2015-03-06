@@ -10,11 +10,12 @@
 package main
 
 import (
-	"./logreader"
+	"./qreader"
 	"flag"
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 )
 
 /*
@@ -35,7 +36,7 @@ func usage() {
 */
 
 var log_re *regexp.Regexp = regexp.MustCompile(`.*\.log(?:\.gz)?$`)
-var filter_re *regexp.Regexp = regexp.MustCompile(`^\S+(?:=|!=)\S+$`)
+var filter_re *regexp.Regexp = regexp.MustCompile(`^\S+(?:=|!=|~|!~)\S+$`)
 
 func parse_args(args []string) ([]string, []string) {
 
@@ -55,9 +56,6 @@ func parse_args(args []string) ([]string, []string) {
 			filters = append(filters, arg)
 		} else if log_re.MatchString(arg) {
 			logs = append(logs, arg)
-		} else {
-			fmt.Println("[ERROR] could not parse argument: " + arg)
-			os.Exit(1)
 		}
 	}
 
@@ -88,10 +86,7 @@ func main() {
 	}
 
 	// next, parse the option flags
-	debug := *flag.Bool("debug", false, "")
-	print_fields := *flag.String("print_fields", "", "")
-	debug = debug
-	print_fields = print_fields
+	print_fields := flag.String("p", "", "")
 	flag.Parse()
 
 	// next, parse through the remaining arguments to find user-supplied filters and logs
@@ -99,7 +94,7 @@ func main() {
 
 	// create a new Qreader:
 	// 		unzipper, []string of filters, number of processors, reading blocksize
-	q := logreader.NewQreader("", filters, 0, 0)
+	q := qreader.NewQreader("", filters, 0, 0, strings.Split(*print_fields, ","))
 
 	// iterate through the logs and apply the filter to each of them
 	for _, log := range logs {
