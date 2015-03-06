@@ -10,12 +10,12 @@
 package main
 
 import (
-	"./qreader"
+	"bro-awk/qreader"
 	"flag"
 	"fmt"
+	"github.com/davecheney/profile"
 	"os"
 	"regexp"
-	"strings"
 )
 
 /*
@@ -78,6 +78,9 @@ func parse_args(args []string) ([]string, []string) {
 	Using the given arguments, construct the necessary filters and run them against the logs
 */
 func main() {
+
+	defer profile.Start(profile.CPUProfile).Stop()
+
 	// first, check to see if usage string was requested
 	for _, x := range os.Args {
 		if x == "-h" || x == "--help" {
@@ -94,7 +97,7 @@ func main() {
 
 	// create a new Qreader:
 	// 		unzipper, []string of filters, number of processors, reading blocksize
-	q := qreader.NewQreader("", filters, 0, 0, strings.Split(*print_fields, ","))
+	q := qreader.NewQreader("", filters, 0, 0, *print_fields)
 
 	// iterate through the logs and apply the filter to each of them
 	for _, log := range logs {

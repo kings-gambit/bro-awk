@@ -171,13 +171,13 @@ func NewFilter(rule string) BaseFilter {
 func (self Filter) Passes(data *Linedata) bool {
 	for _, field := range self.fields {
 		for _, value := range self.values {
-			if !self.compare_function(data.get(field), value) {
-				return false
+			if self.compare_function(data.get(field), value) {
+				return true
 			}
 		}
 	}
 
-	return true
+	return false
 }
 
 /*
@@ -187,13 +187,13 @@ func (self Filter) Passes(data *Linedata) bool {
 func (self RegexFilter) Passes(data *Linedata) bool {
 	for _, field := range self.fields {
 		for _, value := range self.values {
-			if !self.compare_function(data.get(field), value) {
-				return false
+			if self.compare_function(data.get(field), value) {
+				return true
 			}
 		}
 	}
 
-	return true
+	return false
 }
 
 //--------------------------------------------------------------------------------
