@@ -1,0 +1,46 @@
+#-------------------------------------------------------------------------------
+#
+#	AWK vs BRO-AWK benchmark tests
+#
+#-------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+[task]
+	print all incoming port22 traffic into the wireless subnet 25 /24
+
+[awk]
+	cmd:		gzcat $TESTLOG | awk 'BEGIN {OFS="\t"} $13="T" && $6="22" && $3~/128\.252\.25\.*/{print}'
+	result:		26
+	time:		357.02 real
+
+[bro-awk]
+	cmd:		bro-awk $TESTLOG local_orig=F id.resp_p=22 id.orig_h~^125\.252\.25\.
+	result:		26
+	time:		29.64 real
+--------------------------------------------------------------------------------
+[task]
+	print the history column for all HTTP/S traffic 
+
+[awk]
+	cmd:		gzcat $TESTLOG | awk 'BEGIN {OFS="\t"} $4~/80|443/ || $6~/80|443/ {print $15}'
+	result:		9731885
+	time:		361.16 real
+
+[bro-awk]
+	cmd:		bro-awk -p history $TESTLOG id.orig_p,id.resp_p=80,443
+	result:		9731885
+	time:		35.69 real
+--------------------------------------------------------------------------------
+[task]
+	print the line for any traffic on the 120 /24 where the connection ends in a F flag
+
+[awk]
+	cmd:		gzcat $TESTLOG | awk 'BEGIN {OFS="\t"} ($3~/128\.252\.120\.*/ || $5~/128\.252\.120\.*/) && $15~/F$/ {print}'
+	result:		344
+	time:		360.84 real
+
+[bro-awk]
+	cmd:		./bro-awk $TESTLOG id.orig_h,id.resp_h~^128\.252\.120\. history~F$
+	result:		344
+	time:		34.96 real
+--------------------------------------------------------------------------------

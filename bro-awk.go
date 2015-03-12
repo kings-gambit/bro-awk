@@ -13,7 +13,6 @@ import (
 	"bro-awk/qreader"
 	"flag"
 	"fmt"
-	"github.com/davecheney/profile"
 	"os"
 	"regexp"
 )
@@ -25,7 +24,7 @@ func usage() {
 	fmt.Println("USAGE:\n\tbro-awk [OPTIONS...] [FILTERS...] [LOGS...]\n")
 	fmt.Println("OPTIONS:\n\t-d, --debug\t\tturn on program debugging")
 	fmt.Println("\t-p, --print_fields\tonly print the listed fields\n")
-	fmt.Println("FILTER SYNTAX:\n\t<FIELD>=<VALUE>\n\t<FIELD>!=<VALUE>\n")
+	fmt.Println("FILTER SYNTAX:\n\t[literal strings]\n\t<FIELD>=<VALUE>\n\t<FIELD>!=<VALUE>\n\n\t[regexes]\n\t<FIELD>~<VALUE>\n\t<FIELD!~<VALUE>>\n")
 	fmt.Println("EXAMPLES:\n\tTODO\n")
 	os.Exit(1)
 }
@@ -78,9 +77,6 @@ func parse_args(args []string) ([]string, []string) {
 	Using the given arguments, construct the necessary filters and run them against the logs
 */
 func main() {
-
-	defer profile.Start(profile.CPUProfile).Stop()
-
 	// first, check to see if usage string was requested
 	for _, x := range os.Args {
 		if x == "-h" || x == "--help" {
