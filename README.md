@@ -11,11 +11,7 @@ processors, making it much faster at crunching through large gzipped logs.
 
 ### Installation
 
-This doesn't work yet, but you will eventually be able to install with:
-
 	go get github.com/compilewithstyle/bro-awk
-
-__TODO__
 
 ### Usage
 
