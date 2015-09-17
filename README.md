@@ -31,8 +31,6 @@ processors, making it much faster at crunching through large gzipped logs.
 		<FIELD>~<VALUE>
 		<FIELD!~<VALUE>>
 	
-The filter expressions take the form of <bro_field><operator><value>, where operator can be "=" for exactly equality or "~" for regex searching.
-	
 ### Examples
 
 Print all incoming port22 traffic into the wireless subnet 25 /24:
