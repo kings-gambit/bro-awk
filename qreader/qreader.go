@@ -10,7 +10,6 @@
 package qreader
 
 import (
-	"bro-awk/filters"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,6 +18,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/compilewithstyle/bro-awk/filters"
 )
 
 //--------------------------------------------------------------------------------
