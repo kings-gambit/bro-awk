@@ -10,11 +10,12 @@
 package main
 
 import (
-	"bro-awk/qreader"
 	"flag"
 	"fmt"
 	"os"
 	"regexp"
+
+	"github.com/compilewithstyle/bro-awk/qreader"
 )
 
 /*
